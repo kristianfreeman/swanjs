@@ -51,7 +51,7 @@
     "node": ">=8.9"
   },
   "dependencies": {
-    "@swandotjs/swap": "0.1.1-alpha.0"
+    "@swandotjs/swap": "0.1.2-alpha.0"
   },
   "devDependencies": {
     "@bitjson/npm-scripts-info": "^1.0.0",

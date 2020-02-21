@@ -1,8 +1,10 @@
 export default class App {
-  constructor(event) {
+  constructor(event, opts = {}) {
     this._event = event
     this._useBefore = []
     this._middleware = []
+    this._opts = {}
+    this.log = opts.logger ? opts.logger : console.log
 
     this._ended = false
     this._req = event.request
@@ -18,7 +20,7 @@ export default class App {
 
   end() {
     if (this._ended) {
-      throw new Error("Already ended this request")
+      throw new Error('Already ended this request')
     }
     this._ended = true
   }
@@ -42,9 +44,7 @@ export default class App {
 
   redirect(url, response) {
     const redirectResponse = Response.redirect(url)
-    this.res(
-      new Response(null, { ...this.res(), ...redirectResponse, ...response })
-    )
+    this.res(new Response(null, { ...this.res(), ...redirectResponse, ...response }))
   }
 
   async handle() {
@@ -58,7 +58,7 @@ export default class App {
         await previous
         if (this._ended) {
           console.log(
-            "EDGE CASE: with multiple useBefore's, we should check if a previous useBefore has ended this request, and skip this one"
+            "EDGE CASE: with multiple useBefore's, we should check if a previous useBefore has ended this request, and skip this one",
           )
           return Promise.resolve()
         }
@@ -73,19 +73,15 @@ export default class App {
       }
     }
 
-    console.log("Finished checking for/running useBefores")
-
     if (this._ended) {
-      console.log("useBefore modified response - need to return it")
       return this.res()
     }
 
-    console.log("Starting checking for/running middlewares")
     await this._middleware.reduce(async (previous, cur) => {
       await previous
       if (this._ended) {
         console.log(
-          "EDGE CASE: with multiple use's, we should check if a previous middleware has ended this request, and skip this one"
+          "EDGE CASE: with multiple use's, we should check if a previous middleware has ended this request, and skip this one",
         )
         return Promise.resolve()
       }
@@ -95,9 +91,18 @@ export default class App {
       })
     }, Promise.resolve())
 
-    console.log("Finished middlewares")
-
-    console.log("Returning response")
+    const url = new URL(this.req().url)
+    try {
+      this.log({
+        hostname: url.hostname,
+        ip: this.req().ip,
+        method: this.req().method,
+        url,
+        status: this.res().status,
+      })
+    } catch (err) {
+      this.log({ status: 'error', message: err.toString() })
+    }
     return this.res()
   }
 }

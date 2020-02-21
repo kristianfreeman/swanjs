@@ -1,11 +1,3 @@
-# `@swandotjs/app`
+# @swandotjs/app
 
-> TODO: description
-
-## Usage
-
-```
-const app = require('@swandotjs/app');
-
-// TODO: DEMONSTRATE API
-```
+A framework for writing web applications with Cloudflare Workers

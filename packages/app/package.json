@@ -1,7 +1,7 @@
 {
   "name": "@swandotjs/app",
   "author": "Kristian Freeman <kristian@kristianfreeman.com>",
-  "version": "0.1.2",
+  "version": "0.1.2-alpha.0",
   "description": "A framework for writing web applications with Cloudflare Workers",
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
@@ -94,5 +94,6 @@
     "exclude": [
       "**/*.spec.js"
     ]
-  }
+  },
+  "gitHead": "82a8356bcc4f8bab5717c4eb86e297aabff3bc07"
 }

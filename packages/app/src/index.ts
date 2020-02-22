@@ -35,7 +35,7 @@ export default class App {
 
     this._ended = false;
     this._req = event.request;
-    this._res = null;
+    this._res = new MutableResponse(null);
   }
 
   get req() {
@@ -94,12 +94,11 @@ export default class App {
       }, Promise.resolve());
 
       if (this.res !== null) {
-        return this.res;
+        return this.res.response;
       }
     }
-
     if (this._ended) {
-      return this.res;
+      return this.res.response;
     }
 
     await this._middleware.reduce(async (previous, cur) => {
@@ -128,6 +127,6 @@ export default class App {
     } catch (err) {
       this.log({ status: 'error', message: err.toString() });
     }
-    return this.res;
+    return this.res.response;
   }
 }

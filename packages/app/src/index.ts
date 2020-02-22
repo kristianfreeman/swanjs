@@ -22,7 +22,7 @@ export default class App {
   _useBefore: Array<Middleware>;
   _middleware: Array<Middleware>;
   _ended: boolean;
-  _req: MutableRequest;
+  _req: Request;
   _res?: MutableResponse;
 
   log: Function;
@@ -38,7 +38,10 @@ export default class App {
     this._res = new MutableResponse(null);
   }
 
-  get req() {
+  req(newReq?: Request) {
+    if (newReq) {
+      this._req = new Request(this._req, newReq);
+    }
     return this._req;
   }
 
@@ -78,26 +81,32 @@ export default class App {
       this.end();
     };
 
-    if (this._useBefore.length) {
-      await this._useBefore.reduce(async (previous, cur) => {
-        await previous;
-        if (this._ended) {
-          console.log(
-            "EDGE CASE: with multiple useBefore's, we should check if a previous useBefore has ended this request, and skip this one"
-          );
-          return Promise.resolve();
-        }
-        return cur(this.req, this.res, {
-          event: this._event,
-          redirect: bail.bind(this)
-        });
-      }, Promise.resolve());
+    try {
+      if (this._useBefore.length) {
+        await this._useBefore.reduce(async (previous, cur) => {
+          await previous;
+          if (this._ended) {
+            console.log(
+              "EDGE CASE: with multiple useBefore's, we should check if a previous useBefore has ended this request, and skip this one"
+            );
+            return Promise.resolve();
+          }
+          return cur(this.req.bind(this), this.res, {
+            event: this._event,
+            redirect: bail.bind(this)
+          });
+        }, Promise.resolve());
 
-      if (this.res !== null) {
-        return this.res.response;
+        if (this.res.body !== null) {
+          return this.res.response;
+        }
       }
+    } catch (err) {
+      console.error(err);
     }
+
     if (this._ended) {
+      console.log('ending');
       return this.res.response;
     }
 
@@ -109,18 +118,18 @@ export default class App {
         );
         return Promise.resolve();
       }
-      return cur(this.req, this.res, {
+      return cur(this.req.bind(this), this.res, {
         event: this._event,
         redirect: bail
       });
     }, Promise.resolve());
 
-    const url = new URL(this.req.url);
+    const url = new URL(this.req().url);
     try {
       this.log({
         hostname: url.hostname,
-        ip: this.req.ip,
-        method: this.req.method,
+        ip: (this.req() as any).ip,
+        method: this.req().method,
         url,
         status: this.res.status
       });

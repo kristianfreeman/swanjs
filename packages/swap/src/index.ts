@@ -76,7 +76,7 @@ class MutableRequest implements Request {
   }
 
   get mode() {
-    return this.request.mode;
+    return null;
   }
 
   get redirect() {
